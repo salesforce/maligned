@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2020, salesforce.com, inc.
+ * All rights reserved.
+ * SPDX-License-Identifier: MIT
+ * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
+ */
 import Dependencies._
 
 val polish =
@@ -43,6 +49,8 @@ lazy val commonSettings = Seq(
   ),
   lint := {
     scalafmtCheckAll.value
+    (Compile / headerCheck).value
+    (Test / headerCheck).value
     (Compile / scalafmtSbtCheck).value
     (Compile / scalafix).toTask(" --test").value
     (Test / scalafix).toTask(" --test").value
@@ -53,6 +61,8 @@ lazy val commonSettings = Seq(
     (test in Test).value
   },
   polish := {
+    (Compile / headerCreate).value
+    (Test / headerCreate).value
     (Compile / scalafix).toTask("").value
     (Test / scalafix).toTask("").value
     (Compile / scalafmtSbt).value
@@ -62,7 +72,15 @@ lazy val commonSettings = Seq(
   semanticdbEnabled := true,
   semanticdbVersion := scalafixSemanticdb.revision,
   addCompilerPlugin(kindProjector),
-  addCompilerPlugin(betterMonadicFor)
+  addCompilerPlugin(betterMonadicFor),
+  headerLicense := Some(
+    HeaderLicense.Custom(
+      """|Copyright (c) 2020, salesforce.com, inc.
+        |All rights reserved.
+        |SPDX-License-Identifier: MIT
+        |For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
+        |""".stripMargin
+    ))
 )
 
 // General Settings
