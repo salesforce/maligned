@@ -87,21 +87,21 @@ sealed abstract class TAList[F[_, _], A, B] extends Serializable {
 object TAList {
 
   /**
-   * A reversed type-aligned list. Consider a `TAList[Function1, A, D]` with elements `A => B, B =>
-   * C, C => D`.  If you reverse the list, the elements become `C => D, B => C, A => B`. Note that
-   * this is ''not'' of type `TAList[Function1, D, A]`. It cannot be chained into a `D => A`,
-   * because the first element is a function that takes a `C` (not a `D`), and the next element
-   * takes an input type of `B` (which is neither `C` nor `D`). In general the right-type of each
-   * element does not line up with the left-type of the next element. However, if you were to define
-   * `type <=[A, B] = B => A` then you could view this list as `D <= C, C <= B, B <= A`. This ''is''
-   * of the correct shape for a type-aligned list, but `F` is no longer `Funtion1`/`=>`. It is the
-   * flipped `<=` type.
+   * A reversed type-aligned list. Consider a `TAList[Function1, A, D]` with elements
+   * `A => B, B => C, C => D`.  If you reverse the list, the elements become
+   * `C => D, B => C, A => B`. Note that this is ''not'' of type `TAList[Function1, D, A]`. It
+   * cannot be chained into a `D => A`, because the first element is a function that takes a `C`
+   * (not a `D`), and the next element takes an input type of `B` (which is neither `C` nor `D`). In
+   * general the right-type of each element does not line up with the left-type of the next element.
+   * However, if you were to define `type <=[A, B] = B => A` then you could view this list as
+   * `D <= C, C <= B, B <= A`. This ''is'' of the correct shape for a type-aligned list, but `F` is
+   * no longer `Funtion1`/`=>`. It is the flipped `<=` type.
    *
    * This reversed list is a little awkward but can still be useful in certain situations. If you
    * wanted to collapse a `TAList[Function1, A, D]` into a single `A => D` you could do it with a
    * `foldLeft` that calls `andThen` to accumulate all of the function values together. If instead
-   * you had a `TAList.Rev[Function1, A, D]` you could perform an equivalent `leftFold` into an `A
-   * => D` by calling `compose` instead of `andThen`.
+   * you had a `TAList.Rev[Function1, A, D]` you could perform an equivalent `leftFold` into an
+   * `A => D` by calling `compose` instead of `andThen`.
    *
    * This reversed shape can also be useful for the implementation of operations like
    * [[TANonEmptyList.reduceRight]].

@@ -17,4 +17,4 @@ jobs:
         uses: "nixbuild/nix-quick-install-action@1481852014c158076f88e3edced1e4609c7d954b"
 
       - name: "sbt validate"
-        run: nix-shell shell.nix --run "sbt --batch validate"
+        run: nix-shell shell.nix --run "sbt --batch +validate"
