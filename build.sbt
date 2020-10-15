@@ -12,10 +12,12 @@ val polish =
 val lint = taskKey[Unit]("Run static linters on code")
 val validate = taskKey[Unit]("Perform validation (compiles, tests pass, linter is happy, etc).")
 
+val githubRepoUrl = "https://github.com/salesforce/maligned"
+
 // Projects
 lazy val maligned = project
   .in(file("."))
-  .aggregate(core)
+  .aggregate(core, docs)
   .settings(commonSettings)
   .settings(
     skip in publish := true
@@ -34,13 +36,34 @@ lazy val core = project
     )
   )
 
+lazy val docs = project
+  .in(file("docs"))
+  .settings(commonSettings)
+  .enablePlugins(ParadoxPlugin, ScalaUnidocPlugin)
+  .settings(
+    name := "docs",
+    skip in publish := true,
+    paradoxTheme := Some(builtinParadoxTheme("generic")),
+    (Compile / paradox / target) := crossTarget.value / "paradox" / "site",
+    (ScalaUnidoc / unidoc / target) := (Compile / paradox / target).value / "api",
+    (Compile / paradox) := (Compile / paradox).dependsOn(Compile / unidoc).value,
+    validate := validate.dependsOn(Compile / paradox).value,
+    (Compile / paradoxProperties) ++= Map(
+      "scaladoc.maligned.base_url" -> ".../api/com/salesforce",
+      "organization" -> organization.value,
+      "version" -> version.value,
+      "sourceUrl" -> githubRepoUrl
+    )
+  )
+  .dependsOn(core)
+
 // General Settings
 
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.4.2"
 
 lazy val commonSettings = Seq(
-  scalaVersion := "2.11.12",
-  crossScalaVersions := Seq(scalaVersion.value, "2.12.12"),
+  scalaVersion := "2.12.12",
+  crossScalaVersions := Seq(scalaVersion.value, "2.11.12"),
   wartremoverErrors := Warts.allBut(
     // Maligned's heavy use of existential types seems to trigger a lot of claims about Any and
     // Nothing being inferred in places that are doing sound and reasonable things.
@@ -94,7 +117,7 @@ inThisBuild(
         "cody.allen@salesforce.com",
         url("https://github.com/ceedubs"))
     ),
-    homepage := Some(url("https://github.com/salesforce/maligned")),
+    homepage := Some(url(githubRepoUrl)),
     licenses += ("MIT", url("http://opensource.org/licenses/MIT")),
     pomIncludeRepository := { _ => false },
     scalacOptions in (Compile, doc) ++= Seq(
@@ -102,6 +125,6 @@ inThisBuild(
       "-sourcepath",
       (baseDirectory in LocalRootProject).value.getAbsolutePath,
       "-doc-source-url",
-      "https://github.com/salesforce/maligned/blob/v" + version.value + "€{FILE_PATH}.scala"
+      s"$githubRepoUrl/blob/v${version.value}€{FILE_PATH}.scala"
     )
   ))

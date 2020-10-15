@@ -27,8 +27,6 @@ package com.salesforce.maligned
  * @see [[TAFoldRight]] for a foldRight counterpart
  *
  * @see [[TAReduceLeft]] for a reduceLeft (non-empty structure) counterpart
- *
- * @see [[com.salesforceiq.intelligence.pipeline.Pipeline.toJava]] for an example usage.
  */
 trait TAFoldLeft[F[_, _], G[_, _], Z, I] { self =>
 
