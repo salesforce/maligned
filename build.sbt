@@ -48,6 +48,15 @@ lazy val docs = project
     (ScalaUnidoc / unidoc / target) := (Compile / paradox / target).value / "api",
     (Compile / paradox) := (Compile / paradox).dependsOn(Compile / unidoc).value,
     validate := validate.dependsOn(Compile / paradox).value,
+    (ScalaUnidoc / unidoc / scalacOptions) ++= Seq(
+      "-Xfatal-warnings",
+      "-groups",
+      "-sourcepath",
+      (baseDirectory in LocalRootProject).value.getAbsolutePath,
+      "-doc-source-url",
+      s"$githubRepoUrl/blob/v${version.value}€{FILE_PATH}.scala",
+      "-diagrams"
+    ),
     (Compile / paradoxProperties) ++= Map(
       "scaladoc.maligned.base_url" -> ".../api/com/salesforce",
       "organization" -> organization.value,
@@ -119,12 +128,5 @@ inThisBuild(
     ),
     homepage := Some(url(githubRepoUrl)),
     licenses += ("MIT", url("http://opensource.org/licenses/MIT")),
-    pomIncludeRepository := { _ => false },
-    scalacOptions in (Compile, doc) ++= Seq(
-      "-groups",
-      "-sourcepath",
-      (baseDirectory in LocalRootProject).value.getAbsolutePath,
-      "-doc-source-url",
-      s"$githubRepoUrl/blob/v${version.value}€{FILE_PATH}.scala"
-    )
+    pomIncludeRepository := { _ => false }
   ))
