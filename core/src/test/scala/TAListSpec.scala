@@ -112,6 +112,14 @@ class TAListSpec extends MalignedSpec with Discipline {
     }
   }
 
+  test("TAList ::: and prependReversed are consistent") {
+    forAll { (l1: TAList[Function1, Int, Int], l2: TAList[Function1, Int, Int], input: Int) =>
+      val f = (l1 ::: l2).composeAll
+      val g = (l2.prependReversed(l1.reverse)).composeAll
+      g(input) should ===(f(input))
+    }
+  }
+
   test("toNonEmptyChain") {
     val l = 1.0.asLeft[String] :: TANonEmptyList.one(2.asRight[String])
     l.toNonEmptyChain.map(_.toString).mkString_(",") should ===("Left(1.0),Right(2)")
