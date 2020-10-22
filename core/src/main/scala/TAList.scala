@@ -45,6 +45,14 @@ sealed abstract class TAList[F[_, _], A, B] extends Serializable {
   def :::[C](init: TAList[F, C, A]): TAList[F, C, B]
 
   /**
+   * Prepend the elements of `init` (in reverse order) to this list.
+   *
+   * `l.prependReversed(init)` is equivalent to `init.reversed ::: l`, but `prependReversed` is more
+   * efficient.
+   */
+  def prependReversed[C](init: TAList.Rev[F, C, A]): TAList[F, C, B]
+
+  /**
    * Perform a type-aligned left-fold over this list, accumulating into a `G[I, B]` result.
    *
    * @see [[TAFoldLeft]] for more details and a description of the type parameters.
@@ -127,6 +135,8 @@ final case class TANil[F[_, _], A]() extends TAList[F, A, A] {
 
   override def :::[C](init: TAList[F, C, A]): TAList[F, C, A] = init
 
+  override def prependReversed[C](init: TAList.Rev[F, C, A]): TAList[F, C, A] = init.reverse
+
   override def foldLeft[G[_, _], I](fold: TAFoldLeft[F, G, A, I]): G[I, A] = fold.init
 
   override def foldRight[G[_, _], O](fold: TAFoldRight[F, G, A, O]): Eval[G[A, O]] = fold.init
@@ -196,6 +206,16 @@ sealed abstract class TANonEmptyList[F[_, _], A, B] extends TAList[F, A, B] { se
 
     }
     init.foldRight[TANonEmptyList[F, *, *], B](fold).value
+  }
+
+  override def prependReversed[C](init: TAList.Rev[F, C, A]): TANonEmptyList[F, C, B] = {
+    type G[_, a] = TANonEmptyList[F, a, B]
+    init.foldLeft[G, A](new TAFoldLeft[Flip[F, *, *], G, A, A] {
+      override def init: TANonEmptyList[F, A, B] = self
+
+      override def step[P, R](acc: TANonEmptyList[F, P, B], f: F[R, P]): TANonEmptyList[F, R, B] =
+        f :: acc
+    })
   }
 
   override def composeAll(implicit F: Category[F]): F[A, B] = composeAllNonEmpty
