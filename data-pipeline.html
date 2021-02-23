@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>type-aligned data pipeline · maligned</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content='docs'/>
+<link rel="canonical" href="https://github.com/salesforce/maligneddata-pipeline.html"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:100normal,100italic,300normal,300italic,400normal,400italic,500normal,500italic,700normal,700italic,900normal,900italicc" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="js/page.js"></script>
+<script type="text/javascript" src="js/warnOldVersion.js"></script>
+<script type="text/javascript" src="js/groups.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/foundation/dist/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="css/page.css"/>
+
+<!--
+<link rel="shortcut icon" href="images/favicon.ico" />
+-->
+</head>
+
+<body>
+<div class="off-canvas-wrapper">
+<div class="off-canvas-wrapper-inner" data-off-canvas-wrapper>
+
+<div class="off-canvas position-left" id="off-canvas-menu" data-off-canvas>
+<nav class="off-canvas-nav">
+<div class="nav-home">
+<a href="index.html" >
+<span class="home-icon">⌂</span>maligned
+</a>
+<div class="version-number">
+0.0.0+1-85cfd4e9*
+</div>
+</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="data-pipeline.html" class="active page">type-aligned data pipeline</a></li>
+</ul>
+</div>
+
+</nav>
+</div>
+
+<div class="off-canvas-content" data-off-canvas-content>
+
+<header class="site-header expanded row">
+<div class="small-12 column">
+<a href="#" class="off-canvas-toggle hide-for-medium" data-toggle="off-canvas-menu"><svg class="svg-icon svg-icon-menu" version="1.1" id="Menu" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 20 20" enable-background="new 0 0 20 20" xml:space="preserve"> <path class="svg-icon-menu-path" fill="#53CDEC" d="M16.4,9H3.6C3.048,9,3,9.447,3,10c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,9.447,16.952,9,16.4,9z M16.4,13
+H3.6C3.048,13,3,13.447,3,14c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,13.447,16.952,13,16.4,13z M3.6,7H16.4
+C16.952,7,17,6.553,17,6c0-0.553-0.048-1-0.6-1H3.6C3.048,5,3,5.447,3,6C3,6.553,3.048,7,3.6,7z"/></svg>
+</a>
+<div class="title"><a href="index.html">maligned</a></div>
+
+<!--
+<a href="https://www.example.com" class="logo show-for-medium">logo</a>
+-->
+</div>
+</header>
+
+<div class="expanded row">
+
+<div class="medium-3 large-2 show-for-medium column">
+<nav class="site-nav">
+<div class="nav-home">
+<a href="index.html" >
+<span class="home-icon">⌂</span>maligned
+</a>
+<div class="version-number">
+0.0.0+1-85cfd4e9*
+</div>
+</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="data-pipeline.html" class="active page">type-aligned data pipeline</a></li>
+</ul>
+</div>
+
+</nav>
+</div>
+
+<div class="small-12 medium-9 large-10 column">
+<section class="site-content">
+
+<span id="version-warning"></span>
+
+<div class="page-header row">
+<div class="medium-12 show-for-medium column">
+<div class="nav-breadcrumbs">
+<ul>
+  <li><a href="index.html">maligned</a></li>
+  <li>type-aligned data pipeline</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div class="page-content row">
+<div class="small-12 large-9 column" id="docs">
+<h1><a href="#type-aligned-data-pipeline" name="type-aligned-data-pipeline" class="anchor"><span class="anchor-link"></span></a>type-aligned data pipeline</h1>
+<p>This document provides an example of how one could use a type-aligned sequence (specifically <a href="api/com/salesforce/maligned/TAList.html" title="maligned.TAList"><code>TAList</code></a>) to represent data pipelines.</p>
+<p>It assumes that the following items have been imported:</p>
+<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/master/core/src/test/scala/example/DataPipelineExample.scala#L15-L20" target="_blank" title="Go to snippet source"></a><code class="language-scala">import cats.data.Kleisli
+import cats.effect.IO
+import cats.implicits._
+import com.salesforce.maligned._
+
+import java.time.Duration</code></pre>
+<h2><a href="#pipeline-stages" name="pipeline-stages" class="anchor"><span class="anchor-link"></span></a>pipeline stages</h2>
+<p>A data pipeline is a sequence of stages, where each stage takes an input value and transforms it into an output value. For this example we&rsquo;ll also declare that every stage has a name and can perform arbitrary IO when producing its output value.</p>
+<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/master/core/src/test/scala/example/DataPipelineExample.scala#L24-L28" target="_blank" title="Go to snippet source"></a><code class="language-scala">trait Stage[A, B] {
+  def name: String
+
+  def apply(input: A): IO[B]
+}</code></pre>
+<p>Now we can define a number of (slightly simplified) stages that you might find in a natural language processing (NLP) pipeline. At this point none of these stages perform side effects so the <code>IO</code> in the return type isn&rsquo;t necessary, but other stages might perform side effects so we&rsquo;ll leave it open as a possibility.</p>
+<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/master/core/src/test/scala/example/DataPipelineExample.scala#L35-L62" target="_blank" title="Go to snippet source"></a><code class="language-scala">/**
+ * Normalizes the case of characters in the input string.
+ *
+ * This simple version just converts everything to lower case.
+ */
+val normalizeCase = new Stage[String, String] {
+  def name: String = &quot;normalize-case&quot;
+
+  def apply(input: String): IO[String] = IO.pure(input.toLowerCase)
+}
+
+/** A logical grouping of characters — usually a word */
+type Token = String
+
+/** Splits an input string into a sequence of tokens (words) */
+val tokenize = new Stage[String, List[Token]] {
+  def name: String = &quot;tokenize&quot;
+
+  def apply(input: String): IO[List[Token]] = IO.pure(input.split(&quot;&quot;&quot;\s&quot;&quot;&quot;).toList)
+}
+
+/** Counts the number of occurrences of each token in the input sequence of tokens. */
+val termFrequency = new Stage[List[Token], Map[Token, Int]] {
+  def name: String = &quot;term-frequency&quot;
+
+  def apply(input: List[Token]): IO[Map[Token, Int]] =
+    IO.pure(input.foldMap(token =&gt; Map(token -&gt; 1)))
+}</code></pre>
+<h2><a href="#putting-the-stages-together" name="putting-the-stages-together" class="anchor"><span class="anchor-link"></span></a>putting the stages together</h2>
+<p>Now that we have defined stages, we can define a data pipeline as a type-aligned list (<a href="api/com/salesforce/maligned/TAList.html" title="maligned.TAList"><code>TAList</code></a>) of stages.</p>
+<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/master/core/src/test/scala/example/DataPipelineExample.scala#L66" target="_blank" title="Go to snippet source"></a><code class="language-scala">type Pipeline[A, B] = TAList[Stage, A, B]</code></pre>
+<p><code>A</code> is the type of input data that is fed into the first stage of the pipeline and <code>B</code> is the type of output data returned by the last stage of the pipeline.</p>
+<p>Now let&rsquo;s create a &ldquo;bag of words&rdquo; text data pipeline. Treating text as a &ldquo;bag of words&rdquo; means that you simply count the number of times that each word occurs, ignoring the order of words completely. This approach can be surprisingly effective for certain tasks.</p>
+<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/master/core/src/test/scala/example/DataPipelineExample.scala#L70-L73" target="_blank" title="Go to snippet source"></a><code class="language-scala">val bagOfWordsPipeline: Pipeline[String, Map[Token, Int]] =
+  normalizeCase ::
+    tokenize ::
+    TANonEmptyList.one(termFrequency)</code></pre>
+<p>As you can see, we use <a href="api/com/salesforce/maligned/TANonEmptyList$.html#one" title="maligned.TANonEmptyList"><code>TANonEmptyList.one</code></a> to wrap the last element in a type-aligned list and use <code>::</code> to prepend elements to it. This is analogous to using <code>1 :: 2 :: NonEmptyList.one(3)</code> to construct a <a href="https://typelevel.org/cats/datatypes/nel.html">Cats NonEmptyList</a></p>
+<p>We have a data pipeline! Read on to find out what we can do with it.</p>
+<h2><a href="#operations-on-type-aligned-lists" name="operations-on-type-aligned-lists" class="anchor"><span class="anchor-link"></span></a>operations on type-aligned lists</h2>
+<p>Type-aligned lists have a number of operations that mirror standard list operations (such as <code>map</code>, <code>foldLeft</code>, etc), but the type-aligned versions are generally a bit more complex.</p>
+<h3><a href="#tolist" name="tolist" class="anchor"><span class="anchor-link"></span></a>toList</h3>
+<p>Sometimes it can be handy to avoid complexity by throwing away type information and converting a type-aligned list into a standard <code>List</code> that has unknown input and output types. For example, since each stage has a <code>name</code> field that is a <code>String</code> regardless of the input and output types of the stage, we can write a method to pretty-print the stage names using <a href="api/com/salesforce/maligned/TAList.html#toList" title="maligned.TAList"><code>toList</code></a>.</p>
+<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/master/core/src/test/scala/example/DataPipelineExample.scala#L77-L81" target="_blank" title="Go to snippet source"></a><code class="language-scala">def prettyPrintStageNames[A, B](pipeline: Pipeline[A, B]): String =
+  pipeline.toList.map(_.name).mkString_(&quot;-&gt;&quot;)
+
+val bagOfWordsStageNames = prettyPrintStageNames(bagOfWordsPipeline)
+assert(bagOfWordsStageNames eqv &quot;normalize-case-&gt;tokenize-&gt;term-frequency&quot;)</code></pre>
+<h3><a href="#mapk" name="mapk" class="anchor"><span class="anchor-link"></span></a>mapK</h3>
+<p>The <code>map</code> method on a traditional <code>List[A]</code> takes a function <code>A =&gt; B</code> and transforms the list into a <code>List[B]</code> by running the function on each element in the list. What would it mean for a type-aligned list to have a <code>map</code> method? Consider a type-aligned list with three elements, <code>F[A =&gt; B], F[B =&gt; C], F[C =&gt; D]</code>. How could we possibly pass a single function in that could act upon every element in the list? A traditional function won&rsquo;t work for this. Since <code>A</code>, <code>B</code>, <code>C</code>, and <code>D</code> could all be different types, we need to ensure that the &ldquo;function&rdquo; that we pass in can handle <code>F[X, Y]</code> for <em>all</em> possible <code>X</code> and <code>Y</code> types. The input to the function could look like <code>def apply[X, Y](f: F[X, Y])</code> to force it to work for <em>all</em> <code>X</code> and <code>Y</code> types, but what would the return type be? If we want to maintain the type-aligned nature of the sequence then the function can&rsquo;t change the <code>X</code> and <code>Y</code> type parameters, but it <em>can</em> transform <code>F</code> to another type: <code>def apply[X, Y](f: F[X, Y]): G[X, Y]</code>. This signature is provided by <a href="api/com/salesforce/maligned/FunctionK2.html" title="maligned.FunctionK2"><code>FunctionK2</code></a> which is similar to the <a href="https://typelevel.org/cats/datatypes/functionk.html">FunctionK type in Cats</a>, but <code>FunctionK</code> works on types of the shape <code>F[_]</code> (like <code>Option</code>) while <a href="api/com/salesforce/maligned/FunctionK2.html" title="maligned.FunctionK2"><code>FunctionK2</code></a> works on types of the shape <code>F[_, _]</code> (like <code>Either</code>).</p>
+<p>We can define a <code>FunctionK2</code> that transforms each <code>Stage</code> into a <a href="https://typelevel.org/cats/datatypes/kleisli.html"><code>Kleisli</code></a>, and then we can then pass the <code>FunctionK</code> instance into <a href="api/com/salesforce/maligned/TAList.html#mapK" title="maligned.TAList"><code>mapK</code></a>.</p>
+<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/master/core/src/test/scala/example/DataPipelineExample.scala#L85-L91" target="_blank" title="Go to snippet source"></a><code class="language-scala">val stageToKleisli: FunctionK2[Stage, Kleisli[IO, *, *]] =
+  new FunctionK2[Stage, Kleisli[IO, *, *]] {
+    def apply[A, B](stage: Stage[A, B]): Kleisli[IO, A, B] = Kleisli(stage.apply(_))
+  }
+
+val kleisliList: TAList[Kleisli[IO, *, *], String, Map[Token, Int]] =
+  bagOfWordsPipeline.mapK(stageToKleisli)</code></pre>
+<h3><a href="#composeall" name="composeall" class="anchor"><span class="anchor-link"></span></a>composeAll</h3>
+<p>At this point it might not be clear why converting from a <code>Stage</code> to a <code>Kleisli</code> might be useful. One nice property of the <code>Kleisli</code> type is that it forms a <a href="https://typelevel.org/cats/api/cats/arrow/Category.html"><code>Category</code></a>, so a <code>Kleisli[IO, A, B]</code> can be composed with a <code>Kleisli[IO, B, C]</code> to form a <code>Kleisli[IO, A, C]</code> that feeds the output of the first <code>Kleisli</code> as input into the second <code>Kleisli</code> and returns the result of the second <code>Kleisli</code>.</p>
+<p><code>TAList[F, A, B]</code> has a <a href="api/com/salesforce/maligned/TAList.html#composeAll" title="maligned.TAList"><code>composeAll</code></a> method that will use the <code>Category</code> instance for <code>F</code> to compose all of the elements of the list into a single <code>F[A, B]</code>. In this case it can compose our <code>Kleisli</code> pipeline into a single <code>Kleisli</code></p>
+<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/master/core/src/test/scala/example/DataPipelineExample.scala#L95-L98" target="_blank" title="Go to snippet source"></a><code class="language-scala">val toBagOfWords: Kleisli[IO, String, Map[Token, Int]] = kleisliList.composeAll
+
+val output: Map[Token, Int] = toBagOfWords(&quot;I think therefore I am&quot;).unsafeRunSync
+assert(output eqv Map(&quot;i&quot; -&gt; 2, &quot;think&quot; -&gt; 1, &quot;therefore&quot; -&gt; 1, &quot;am&quot; -&gt; 1))</code></pre>
+<h2><a href="#making-the-pipeline-more-useful" name="making-the-pipeline-more-useful" class="anchor"><span class="anchor-link"></span></a>making the pipeline more useful</h2>
+<p>So far we haven&rsquo;t gotten much of a benefit from using a type-aligned list of <code>Stage</code> elements for our pipeline. We are able to pretty-print the steps of the pipeline which may be a bit useful but probably doesn&rsquo;t justify the introduction of type-aligned sequences. The effort starts to pay off when we want to add common logic to every stage in a pipeline. For example, when we convert a <code>Stage</code> to a <code>Kleisli</code>, we could make that <code>Kleisli</code> automatically log the name of the stage and the amount of time that it took to run for each input.</p>
+<p>First we&rsquo;ll define a general method for measuring the amount of time that an <code>IO</code> operation takes to run.</p>
+<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/master/core/src/test/scala/example/DataPipelineExample.scala#L102-L109" target="_blank" title="Go to snippet source"></a><code class="language-scala">def timeIO[A](action: IO[A], reportTime: (Duration, Option[Throwable]) =&gt; IO[Unit]): IO[A] =
+  for {
+    start &lt;- IO(System.nanoTime)
+    result &lt;- action.attempt
+    end &lt;- IO(System.nanoTime)
+    _ &lt;- reportTime(Duration.ofNanos(end - start), result.left.toOption)
+    a &lt;- IO.fromEither(result)
+  } yield a</code></pre>
+<p>Now we can define a new <code>Stage</code> to <code>Kleisli</code> transformation that performs the timing and logging.</p>
+<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/master/core/src/test/scala/example/DataPipelineExample.scala#L113-L123" target="_blank" title="Go to snippet source"></a><code class="language-scala">val loggedStage = new FunctionK2[Stage, Kleisli[IO, *, *]] {
+
+  def apply[A, B](stage: Stage[A, B]): Kleisli[IO, A, B] = {
+    def msg(dur: Duration, err: Option[Throwable]): String =
+      s&quot;${stage.name} ${err.fold(&quot;succeeded&quot;)(_ =&gt; &quot;failed&quot;)} in ${dur.toNanos} nanoseconds&quot;
+
+    Kleisli { input =&gt;
+      timeIO(stage(input), (duration, err) =&gt; IO(println(msg(duration, err))))
+    }
+  }
+}</code></pre>
+<p>Now that all of the pieces are in place, we can compose a single <code>Kleisli</code> that will run the entire pipeline, timing and logging each stage as it is executed.</p>
+<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/master/core/src/test/scala/example/DataPipelineExample.scala#L127-L136" target="_blank" title="Go to snippet source"></a><code class="language-scala">val timedBagOfWords: Kleisli[IO, String, Map[Token, Int]] =
+  bagOfWordsPipeline.mapK(loggedStage).composeAll
+
+timedBagOfWords(&quot;I think therefore I am&quot;)
+  .flatMap(counts =&gt; IO(println(counts.show)))
+  .unsafeRunSync
+// normalize-case succeeded in 8355 nanoseconds
+// tokenize succeeded in 4018 nanoseconds
+// term-frequency succeeded in 4405 nanoseconds
+// Map(am -&gt; 1, therefore -&gt; 1, think -&gt; 1, i -&gt; 2)</code></pre>
+<p>By maintaining a type-aligned sequence of stages, we were able to make a single <code>mapK</code> call to apply this common logic to <em>every</em> stage. If we hadn&rsquo;t used a type-aligned list, adding logging and timing to each step would have become significantly more repetitive:</p>
+<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/master/core/src/test/scala/example/DataPipelineExample.scala#L140-L143" target="_blank" title="Go to snippet source"></a><code class="language-scala">val timedBagOfWordsNoTAList: Kleisli[IO, String, Map[Token, Int]] =
+  loggedStage(normalizeCase) andThen
+    loggedStage(tokenize) andThen
+    loggedStage(termFrequency)</code></pre>
+<p>For a 3-stage pipeline this might not be too bad, but as the number of stages in the pipeline grows, so will the benefit of using a type-aligned sequence.</p>
+<h2><a href="#is-stage-useful-" name="is-stage-useful-" class="anchor"><span class="anchor-link"></span></a>is Stage useful?</h2>
+<p>We ended up converting all of our <code>Stage</code> elements into <code>Kleisli</code> elements, so it&rsquo;s reasonable to question whether we should have used <code>Kleisli</code> directly and omitted the <code>Stage</code> type entirely. We can&rsquo;t really beat <code>Kleisli</code> if our goal is strictly to compose together effectful functions. However, function composition might not be the only task that we want to accomplish with our pipeline. The <code>prettyPrintStageNames</code> function that we wrote earlier depended on <code>Stage</code> being a type that we could introspect to grab the <code>name</code>; <code>Kleisli[F, A, B]</code> is an opaque function that we can&rsquo;t get any information out of unless we have an <code>A</code> to pass into it.</p>
+<p>We could also add more fields to <code>Stage</code> to make it even more powerful. For example, we could add input deserializers and output serializers to a <code>Stage</code>:</p>
+<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/master/core/src/test/scala/example/DataPipelineExample.scala#L148-L156" target="_blank" title="Go to snippet source"></a><code class="language-scala">trait Stage2[A, B] {
+  def name: String
+
+  def apply(input: A): IO[B]
+
+  def deserializeInput(input: Array[Byte]): Either[Exception, A]
+
+  def serializeOutput(output: B): Either[Exception, Array[Byte]]
+}</code></pre>
+<p>We could still convert a pipeline into a <code>Kleisli[IO, A, B]</code> that completely ignores the serializers like we did before. But we could also implement a more sophisticated runtime for the pipeline that measures how long individual stages tend to take and determines whether to run stages within the same process or serialize the data and add it to a queue to be processed in a distributed manner.</p>
+<div class="source-github">
+The source code for this page can be found <a href="https://github.com/salesforce/maligned/tree/master/docs/src/main/paradox/data-pipeline.md">here</a>.
+</div>
+
+</div>
+<div class="large-3 show-for-large column" data-sticky-container>
+<nav class="sidebar sticky" data-sticky data-anchor="docs" data-sticky-on="large">
+<div class="page-nav">
+<div class="nav-title">On this page:</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="data-pipeline.html#type-aligned-data-pipeline" class="header">type-aligned data pipeline</a>
+  <ul>
+    <li><a href="data-pipeline.html#pipeline-stages" class="header">pipeline stages</a></li>
+    <li><a href="data-pipeline.html#putting-the-stages-together" class="header">putting the stages together</a></li>
+    <li><a href="data-pipeline.html#operations-on-type-aligned-lists" class="header">operations on type-aligned lists</a></li>
+    <li><a href="data-pipeline.html#making-the-pipeline-more-useful" class="header">making the pipeline more useful</a></li>
+    <li><a href="data-pipeline.html#is-stage-useful-" class="header">is Stage useful?</a></li>
+  </ul></li>
+</ul>
+</div>
+</div>
+</nav>
+</div>
+</div>
+
+</section>
+</div>
+
+</div>
+
+<footer class="site-footer">
+
+<section class="site-footer-nav">
+<div class="expanded row">
+<div class="small-12 large-offset-2 large-10 column">
+<div class="row site-footer-content">
+
+<div class="small-12 medium-4 large-3 text-center column">
+<div class="nav-links">
+<ul>
+<!-- <li><a href="https://www.example.com/products/">Products</a> -->
+</ul>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+</section>
+
+<section class="site-footer-base">
+<div class="expanded row">
+<div class="small-12 large-offset-2 large-10 column">
+<div class="row site-footer-content">
+
+<div class="small-12 text-center large-9 column">
+
+<!--
+<div class="copyright">
+<span class="text">&copy; 1970</span>
+<a href="https://www.example.com" class="logo">logo</a>
+</div>
+-->
+</div>
+
+</div>
+</div>
+</div>
+</section>
+</footer>
+
+</div>
+</div>
+</div>
+</body>
+
+<script type="text/javascript" src="lib/foundation/dist/foundation.min.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="js/magellan.js"></script>
+
+<style type="text/css">@import "lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">jQuery(function(){window.prettyPrint && prettyPrint()});</script>
+<script type="text/javascript">jQuery(function(jq){initOldVersionWarnings(jq, '0.0.0+1-85cfd4e9-SNAPSHOT', 'https://github.com/salesforce/maligned')});</script>
+
+
+</html>

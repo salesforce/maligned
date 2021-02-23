@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>maligned</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content='docs'/>
+<link rel="canonical" href="https://github.com/salesforce/malignedindex.html"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:100normal,100italic,300normal,300italic,400normal,400italic,500normal,500italic,700normal,700italic,900normal,900italicc" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="js/page.js"></script>
+<script type="text/javascript" src="js/warnOldVersion.js"></script>
+<script type="text/javascript" src="js/groups.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/foundation/dist/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="css/page.css"/>
+
+<!--
+<link rel="shortcut icon" href="images/favicon.ico" />
+-->
+</head>
+
+<body>
+<div class="off-canvas-wrapper">
+<div class="off-canvas-wrapper-inner" data-off-canvas-wrapper>
+
+<div class="off-canvas position-left" id="off-canvas-menu" data-off-canvas>
+<nav class="off-canvas-nav">
+<div class="nav-home">
+<a href="index.html" class="active">
+<span class="home-icon">⌂</span>maligned
+</a>
+<div class="version-number">
+0.0.0+1-85cfd4e9*
+</div>
+</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="data-pipeline.html" class="page">type-aligned data pipeline</a></li>
+</ul>
+</div>
+
+</nav>
+</div>
+
+<div class="off-canvas-content" data-off-canvas-content>
+
+<header class="site-header expanded row">
+<div class="small-12 column">
+<a href="#" class="off-canvas-toggle hide-for-medium" data-toggle="off-canvas-menu"><svg class="svg-icon svg-icon-menu" version="1.1" id="Menu" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 20 20" enable-background="new 0 0 20 20" xml:space="preserve"> <path class="svg-icon-menu-path" fill="#53CDEC" d="M16.4,9H3.6C3.048,9,3,9.447,3,10c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,9.447,16.952,9,16.4,9z M16.4,13
+H3.6C3.048,13,3,13.447,3,14c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,13.447,16.952,13,16.4,13z M3.6,7H16.4
+C16.952,7,17,6.553,17,6c0-0.553-0.048-1-0.6-1H3.6C3.048,5,3,5.447,3,6C3,6.553,3.048,7,3.6,7z"/></svg>
+</a>
+<div class="title"><a href="index.html" class="active">maligned</a></div>
+
+<!--
+<a href="https://www.example.com" class="logo show-for-medium">logo</a>
+-->
+</div>
+</header>
+
+<div class="expanded row">
+
+<div class="medium-3 large-2 show-for-medium column">
+<nav class="site-nav">
+<div class="nav-home">
+<a href="index.html" class="active">
+<span class="home-icon">⌂</span>maligned
+</a>
+<div class="version-number">
+0.0.0+1-85cfd4e9*
+</div>
+</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="data-pipeline.html" class="page">type-aligned data pipeline</a></li>
+</ul>
+</div>
+
+</nav>
+</div>
+
+<div class="small-12 medium-9 large-10 column">
+<section class="site-content">
+
+<span id="version-warning"></span>
+
+<div class="page-header row">
+<div class="medium-12 show-for-medium column">
+</div>
+</div>
+
+<div class="page-content row">
+<div class="small-12 large-9 column" id="docs">
+<h1><a href="#maligned" name="maligned" class="anchor"><span class="anchor-link"></span></a>maligned</h1>
+<p>Maligned is a library for type-aligned sequences.</p>
+<h1><a href="#type-aligned-sequences" name="type-aligned-sequences" class="anchor"><span class="anchor-link"></span></a>type-aligned sequences</h1>
+<p>A type-aligned sequence is a collection of elements of the form <code>F[A, B], F[B, C], ... F[C, D]</code> where the output type of each element lines up with the input type of the next element. The type of the sequence maintains the initial input type (<code>A</code> in this example) and the final output type (<code>D</code> in this example). All of the intermediate types are guaranteed to line up, but are represented as existential types, meaning that the type exists and is consistent between nodes but the type is unknown. A common case for a type aligned sequence is when <code>F</code> is <code>Function1</code>, so the above example would be <code>A =&gt; B, B =&gt; C, ... C =&gt; D</code>. See <a href="data-pipeline.html">type-aligned data pipline</a> for an example of representing a data pipeline as a type-aligned sequence of functions.</p>
+<p>Type-aligned sequences support many traditional collection operations, but operations such as folds and reduces require a slightly more complicated type signature to support unknown types in the middle of the sequence.</p>
+<p><a href="api/com/salesforce/maligned/TAList.html" title="maligned.TAList"><code>TAList</code></a> is a cons list (like a traditional <code>scala.collection.immutable.List</code> with <code>Cons</code> <code>Nil</code> constructors), but supports type-aligned sequences. A <a href="api/com/salesforce/maligned/TAList.html" title="maligned.TAList"><code>TAList[F, A, B]</code></a> is a type-aligned cons list where the first element is of type <code>F[A, X] forSome X</code> and the last element is of type <code>F[Y, B] forSome Y</code>.</p>
+<p><a href="api/com/salesforce/maligned/TANonEmptyList.html" title="maligned.TANonEmptyList"><code>TANonEmptyList[F, A, B]</code></a> is a <a href="api/com/salesforce/maligned/TAList.html" title="maligned.TAList"><code>TAList[F, A, B]</code></a> that is guaranteed to not be empty.</p>
+<h1><a href="#resources" name="resources" class="anchor"><span class="anchor-link"></span></a>resources</h1>
+<p>The source code for Maligned lives <a href="https://github.com/salesforce/maligned">here on GitHub</a>.</p>
+<h1><a href="#credits-and-related-projects" name="credits-and-related-projects" class="anchor"><span class="anchor-link"></span></a>credits and related projects</h1>
+<p>Maligned was inspired by Tomas Mikula&rsquo;s <a href="https://github.com/TomasMikula/type-aligned">Type-Aligned</a> library (MPL-2.0 License) and Alexander Konovalov&rsquo;s <a href="https://github.com/alexknvl/taseq">taseq</a> library (MIT License).</p>
+<p>The implementation of the type-aligned sequence data structures (and specifically its stack-safe approach to folds) is heavily based on code in Type-Aligned. One difference between Type-Aligned and maligned is malign&rsquo;s support for flexible left and right folds through its <code>TAFoldLeft</code> and <code>TAFoldRight</code> types. The <code>TAFoldLeft</code> and <code>TAFoldRight</code> types were inspired by taseq but have been made a bit more complex to allow them to support a wider variety of folds.</p>
+<div class="source-github">
+The source code for this page can be found <a href="https://github.com/salesforce/maligned/tree/master/docs/src/main/paradox/index.md">here</a>.
+</div>
+
+<div class="nav-next">
+<p><strong>Next:</strong> <a href="data-pipeline.html">type-aligned data pipeline</a></p>
+</div>
+</div>
+<div class="large-3 show-for-large column" data-sticky-container>
+<nav class="sidebar sticky" data-sticky data-anchor="docs" data-sticky-on="large">
+<div class="page-nav">
+<div class="nav-title">On this page:</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="index.html#maligned" class="header">maligned</a>
+  <ul>
+    <li><a href="index.html#type-aligned-sequences" class="header">type-aligned sequences</a></li>
+    <li><a href="index.html#resources" class="header">resources</a></li>
+    <li><a href="index.html#credits-and-related-projects" class="header">credits and related projects</a></li>
+  </ul></li>
+</ul>
+</div>
+</div>
+</nav>
+</div>
+</div>
+
+</section>
+</div>
+
+</div>
+
+<footer class="site-footer">
+
+<section class="site-footer-nav">
+<div class="expanded row">
+<div class="small-12 large-offset-2 large-10 column">
+<div class="row site-footer-content">
+
+<div class="small-12 medium-4 large-3 text-center column">
+<div class="nav-links">
+<ul>
+<!-- <li><a href="https://www.example.com/products/">Products</a> -->
+</ul>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+</section>
+
+<section class="site-footer-base">
+<div class="expanded row">
+<div class="small-12 large-offset-2 large-10 column">
+<div class="row site-footer-content">
+
+<div class="small-12 text-center large-9 column">
+
+<!--
+<div class="copyright">
+<span class="text">&copy; 1970</span>
+<a href="https://www.example.com" class="logo">logo</a>
+</div>
+-->
+</div>
+
+</div>
+</div>
+</div>
+</section>
+</footer>
+
+</div>
+</div>
+</div>
+</body>
+
+<script type="text/javascript" src="lib/foundation/dist/foundation.min.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="js/magellan.js"></script>
+
+<style type="text/css">@import "lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">jQuery(function(){window.prettyPrint && prettyPrint()});</script>
+<script type="text/javascript">jQuery(function(jq){initOldVersionWarnings(jq, '0.0.0+1-85cfd4e9-SNAPSHOT', 'https://github.com/salesforce/maligned')});</script>
+
+
+</html>
