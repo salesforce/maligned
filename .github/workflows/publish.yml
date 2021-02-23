@@ -1,0 +1,27 @@
+name: "Publish"
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build:
+    name: "Validate and publish"
+    runs-on: "ubuntu-18.04"
+    steps:
+      - name: "Checkout source"
+        uses: "actions/checkout@a81bbbf8298c0fa03ea29cdc473d45769f953675"
+
+      - name: "Cache for sbt & coursier"
+        uses: "coursier/cache-action@b74a57cd5434385877191a348c5f9929f064fda5"
+
+      - name: "Install Nix"
+        uses: "nixbuild/nix-quick-install-action@1481852014c158076f88e3edced1e4609c7d954b"
+
+      - name: "sbt validate"
+        run: nix-shell shell.nix --run "sbt --batch +validate"
+
+      - name: "Publish website"
+        uses: "peaceiris/actions-gh-pages@bbdfb200618d235585ad98e965f4aafc39b4c501"
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/target/scala-2.12/paradox/site
