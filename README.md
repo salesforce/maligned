@@ -1,3 +1,3 @@
 # maligned - a Scala library for type-aligned sequences
 
-More information coming soon!
+For documentation, visit the [maligned website](https://salesforce.github.io/maligned/)!
