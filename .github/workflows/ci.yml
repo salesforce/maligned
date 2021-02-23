@@ -14,7 +14,7 @@ jobs:
         uses: "coursier/cache-action@b74a57cd5434385877191a348c5f9929f064fda5"
 
       - name: "Install Nix"
-        uses: "nixbuild/nix-quick-install-action@1481852014c158076f88e3edced1e4609c7d954b"
+        uses: "nixbuild/nix-quick-install-action@b0cf1019a4b54e3b5d2c77c05b394292f25312de"
 
       - name: "sbt validate"
         run: nix-shell shell.nix --run "sbt --batch +validate"
