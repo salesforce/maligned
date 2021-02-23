@@ -1,8 +1,8 @@
 # type-aligned data pipeline
 
-This document provides an example of how one could use a type-aligned sequence (specifically @scaladoc[TAList](maligned.TAList)) to represent data pipelines.
+This document provides an example of how one could use a type-aligned sequence (specifically @scaladoc[TAList](maligned.TAList)) to represent data pipelines. It will introduce some of the useful high-level methods on type-aligned lists.
 
-It assumes that the following items have been imported:
+The code examples assume that the following items have been imported:
 
 @@snip [[DataPipelineExample.scala]](/core/src/test/scala/example/DataPipelineExample.scala) { #imports }
 
