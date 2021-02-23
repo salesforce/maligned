@@ -1,10 +1,11 @@
-name: "Continuous Integration"
+name: "Publish"
 on:
-  pull_request:
   push:
+    branches:
+      - main
 jobs:
   build:
-    name: "Validate"
+    name: "Validate and publish"
     runs-on: "ubuntu-18.04"
     steps:
       - name: "Checkout source"
@@ -18,3 +19,9 @@ jobs:
 
       - name: "sbt validate"
         run: nix-shell shell.nix --run "sbt --batch +validate"
+
+      - name: "Publish website"
+        uses: "peaceiris/actions-gh-pages@bbdfb200618d235585ad98e965f4aafc39b4c501"
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/target/scala-2.12/paradox/site
