@@ -61,7 +61,9 @@ lazy val docs = project
       "scaladoc.maligned.base_url" -> ".../api/com/salesforce",
       "organization" -> organization.value,
       "version" -> version.value,
-      "sourceUrl" -> githubRepoUrl
+      "sourceUrl" -> githubRepoUrl,
+      // Paradox defaults to the 'master' branch but we use 'main'
+      "github.base_url" -> s"$githubRepoUrl/tree/main"
     )
   )
   .dependsOn(core)
