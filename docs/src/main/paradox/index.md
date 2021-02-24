@@ -3,6 +3,7 @@
 @@@ index
 
 * @ref:[data pipline](data-pipeline.md)
+* @ref:[free monad](free.md)
 
 @@@
 
