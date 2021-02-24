@@ -31,7 +31,7 @@
 <span class="home-icon">⌂</span>maligned
 </a>
 <div class="version-number">
-0.0.0+1-118d8694*
+0.0.0+1-82e19be5*
 </div>
 </div>
 <div class="nav-toc">
@@ -69,7 +69,7 @@ C16.952,7,17,6.553,17,6c0-0.553-0.048-1-0.6-1H3.6C3.048,5,3,5.447,3,6C3,6.553,3.
 <span class="home-icon">⌂</span>maligned
 </a>
 <div class="version-number">
-0.0.0+1-118d8694*
+0.0.0+1-82e19be5*
 </div>
 </div>
 <div class="nav-toc">
@@ -106,10 +106,10 @@ C16.952,7,17,6.553,17,6c0-0.553-0.048-1-0.6-1H3.6C3.048,5,3,5.447,3,6C3,6.553,3.
 <p>There are many ways to implement free monads in Scala, and this particular implementation is mostly meant for demonstrative/learning purposes. Having said that, this is a fairly reasonable way to implement a free monad in Scala. Unlike many naive Scala implementations of free monads, it is stack-safe (that is, it won&rsquo;t throw a stack overflow exception). It&rsquo;s performance should also be reasonable (though this should be verified with benchmarks).</p>
 <h2><a href="#the-freemonad-data-structure" name="the-freemonad-data-structure" class="anchor"><span class="anchor-link"></span></a>the FreeMonad data structure</h2>
 <p>We start off by defining an abstract FreeMonad type for an effect type <code>F[_]</code> and result value of type <code>A</code>:</p>
-<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/master/core/src/test/scala/example/FreeMonad.scala#L17" target="_blank" title="Go to snippet source"></a><code class="language-scala">sealed abstract class FreeMonad[F[_], A]</code></pre>
+<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/main/core/src/test/scala/example/FreeMonad.scala#L17" target="_blank" title="Go to snippet source"></a><code class="language-scala">sealed abstract class FreeMonad[F[_], A]</code></pre>
 <p>This is a bare-bones <code>FreeMonad</code> type and at this point doesn&rsquo;t define anything useful; we&rsquo;ll add that later.</p>
 <p>We&rsquo;ll need some ways to construct a <code>FreeMonad</code>. The two most straightforward ways to create a <code>FreeMonad[F[_], A]</code> value are by simply wrapping an <code>A</code> value (the <code>Pure</code> constructor) or an <code>F[A]</code> value (the <code>Suspend</code> constructor). Both <code>Pure</code> and <code>Suspend</code> wrap a value without providing a &ldquo;continuation&rdquo; function to later apply to the value. We&rsquo;ll make them extend a common <code>NoCont</code> (_no continuation_) super-type which will end up being useful later on.</p>
-<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/master/core/src/test/scala/example/FreeMonad.scala#L22-L36" target="_blank" title="Go to snippet source"></a><code class="language-scala">/**
+<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/main/core/src/test/scala/example/FreeMonad.scala#L22-L36" target="_blank" title="Go to snippet source"></a><code class="language-scala">/**
  * A free monad that wraps a value and does not provide any &quot;continuation&quot; functions to apply to
  * the value
  */
@@ -125,21 +125,21 @@ def pure[F[_], A](value: A): FreeMonad[F, A] = Pure(value)
 
 def suspend[F[_], A](value: F[A]): FreeMonad[F, A] = Suspend(value)</code></pre>
 <p>The third and final way to construct a <code>FreeMonad</code> value is to call <code>flatMap</code> on a <code>FreeMonad[F, A]</code> value, providing a function of type <code>A =&gt; FreeMonad[F, B]</code> to produce a <code>FreeMonad[F, B]</code> value. We&rsquo;ll refer to functions of this <code>A =&gt; FreeMonad[F, B]</code> form as <em>continuations</em>, as they describe a way to continue the computation once an <code>A</code> value has been produced. In fact, let&rsquo;s go ahead and define a <code>Cont</code> type alias for continuation functions:</p>
-<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/master/core/src/test/scala/example/FreeMonad.scala#L40-L41" target="_blank" title="Go to snippet source"></a><code class="language-scala">/** A continuation that takes an A value and returns a new FreeMonad to continue the computation */
+<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/main/core/src/test/scala/example/FreeMonad.scala#L40-L41" target="_blank" title="Go to snippet source"></a><code class="language-scala">/** A continuation that takes an A value and returns a new FreeMonad to continue the computation */
 type Cont[F[_], A, B] = A =&gt; FreeMonad[F, B]</code></pre>
 <p>Now we can define a constructor for free monads that are created via <code>flatMap</code>. It will have two fields:</p>
 <ul>
   <li>The initial <code>FreeMonad[F, A]</code> value upon which <code>flatMap</code> was called (<code>init</code>)</li>
   <li>A non-empty list of continuation functions (<code>conts</code>). This will have a single value if <code>flatMap</code> was only called once, and will have an additional value for each time that <code>flatMap</code> is called.</li>
 </ul>
-<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/master/core/src/test/scala/example/FreeMonad.scala#L45-L48" target="_blank" title="Go to snippet source"></a><code class="language-scala">final private case class FlatMapped[F[_], A, B](
+<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/main/core/src/test/scala/example/FreeMonad.scala#L45-L48" target="_blank" title="Go to snippet source"></a><code class="language-scala">final private case class FlatMapped[F[_], A, B](
   init: NoCont[F, A],
   conts: TANonEmptyList.Rev[Cont[F, *, *], A, B])
     extends FreeMonad[F, B]</code></pre>
 <p>The astute reader may have noticed that we used <code>TANonEmptyList.Rev</code> as opposed to <code>TANonEmptyList</code> for the continuations. This is an optimization and isn&rsquo;t strictly necessary. Prepending to a <code>TANonEmptyList</code> is more efficient than appending to it (constant time as opposed to linear time), so we prepend to the continuation list every time that <code>flatMap</code> is called, resulting in a reversed list of continuations. Operations that consume the free monad value will most likely need to reverse the list, which is a linear-time operation, but better one linear-time operation than many.</p>
 <h2><a href="#putting-the-monad-in-free-monad" name="putting-the-monad-in-free-monad" class="anchor"><span class="anchor-link"></span></a>putting the monad in free monad</h2>
 <p>Now we have all the pieces in place to be able to define a <code>Monad</code> instance for <code>Free</code>!</p>
-<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/master/core/src/test/scala/example/FreeMonad.scala#L52-L62" target="_blank" title="Go to snippet source"></a><code class="language-scala">implicit def monadForFreeMonad[F[_]]: Monad[FreeMonad[F, *]] =
+<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/main/core/src/test/scala/example/FreeMonad.scala#L52-L62" target="_blank" title="Go to snippet source"></a><code class="language-scala">implicit def monadForFreeMonad[F[_]]: Monad[FreeMonad[F, *]] =
   new StackSafeMonad[FreeMonad[F, *]] {
 
     override def pure[A](x: A): FreeMonad[F, A] = Pure(x)
@@ -155,14 +155,14 @@ type Cont[F[_], A, B] = A =&gt; FreeMonad[F, B]</code></pre>
 <pre class="prettyprint"><code class="language-scala">def foldMap[F[_], G[_], A](fa: FreeMonad[F, A])(f2g: FunctionK[F, G])(implicit G: Monad[G]): G[A]
 </code></pre>
 <p>Implementing <code>foldMap</code> for <code>NoCont</code> values is pretty straightforward, so let&rsquo;s start with that:</p>
-<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/master/core/src/test/scala/example/FreeMonad.scala#L66-L71" target="_blank" title="Go to snippet source"></a><code class="language-scala">def foldMapNoCont[F[_], G[_], A](fa: NoCont[F, A])(f2g: FunctionK[F, G])(implicit
+<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/main/core/src/test/scala/example/FreeMonad.scala#L66-L71" target="_blank" title="Go to snippet source"></a><code class="language-scala">def foldMapNoCont[F[_], G[_], A](fa: NoCont[F, A])(f2g: FunctionK[F, G])(implicit
   G: Monad[G]): G[A] =
   fa match {
     case Pure(value) =&gt; G.pure(value)
     case Suspend(value) =&gt; f2g(value)
   }</code></pre>
 <p>Implementing <code>foldMap</code> for the <code>FlatMapped</code> case in a stack-safe manner is significantly more complicated. We&rsquo;ll take the approach of keeping track of the current input value and a stack (a <code>TANonEmptyList</code> structure) of continuations that still need to be run. First let&rsquo;s define some helper type aliases for the (input, continuation) stack pairs:</p>
-<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/master/core/src/test/scala/example/FreeMonad.scala#L75-L95" target="_blank" title="Go to snippet source"></a><code class="language-scala">/**
+<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/main/core/src/test/scala/example/FreeMonad.scala#L75-L95" target="_blank" title="Go to snippet source"></a><code class="language-scala">/**
  * A stack of continuations.
  *
  * @tparam I the input type of the first continuation
@@ -191,7 +191,7 @@ type InputAndConts[F[_], O] = TATuple2K[Id, Conts[F, *, O]]
   <li>Find the input value for the next continuation.</li>
   <li>If there are no more continuations, return a <code>Right</code> wrapping the final value. Otherwise return a <code>Left</code> with the remaining continuation stack and the input value for the next continuation.</li>
 </ul>
-<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/master/core/src/test/scala/example/FreeMonad.scala#L103-L128" target="_blank" title="Go to snippet source"></a><code class="language-scala">def foldMapStep[F[_], G[_], A](inputAndConts: InputAndConts[F, A])(f2g: FunctionK[F, G])(implicit
+<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/main/core/src/test/scala/example/FreeMonad.scala#L103-L128" target="_blank" title="Go to snippet source"></a><code class="language-scala">def foldMapStep[F[_], G[_], A](inputAndConts: InputAndConts[F, A])(f2g: FunctionK[F, G])(implicit
   G: Monad[G]): G[Either[InputAndConts[F, A], A]] =
   inputAndConts.second.uncons1 match {
     // last continuation on the stack
@@ -218,7 +218,7 @@ type InputAndConts[F[_], O] = TATuple2K[Id, Conts[F, *, O]]
       }
   }</code></pre>
 <p>Finally we can define <code>foldMap</code>:</p>
-<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/master/core/src/test/scala/example/FreeMonad.scala#L132-L142" target="_blank" title="Go to snippet source"></a><code class="language-scala">def foldMap[F[_], G[_], A](fa: FreeMonad[F, A])(f2g: FunctionK[F, G])(implicit
+<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/main/core/src/test/scala/example/FreeMonad.scala#L132-L142" target="_blank" title="Go to snippet source"></a><code class="language-scala">def foldMap[F[_], G[_], A](fa: FreeMonad[F, A])(f2g: FunctionK[F, G])(implicit
   G: Monad[G]): G[A] =
   fa match {
     // simple case of no continations; we are done!
@@ -231,7 +231,7 @@ type InputAndConts[F[_], O] = TATuple2K[Id, Conts[F, *, O]]
   }</code></pre>
 <h2><a href="#using-foldmap" name="using-foldmap" class="anchor"><span class="anchor-link"></span></a>using foldMap</h2>
 <p>To convince ourselves that our <code>foldMap</code> implementation is correct and stack-safe, we can use a classic example of using <code>Function0</code> as the <code>F[_]</code> type to create a <a href="https://medium.com/@olxc/trampolining-and-stack-safety-in-scala-d8e86474ddfa">trampoline</a> and compute a value via two mutually-recursive functions that would not be stack-safe in the absence of trampolining.</p>
-<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/master/core/src/test/scala/example/FreeMonad.scala#L148-L166" target="_blank" title="Go to snippet source"></a><code class="language-scala">type Trampoline[A] = FreeMonad[Function0, A]
+<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/main/core/src/test/scala/example/FreeMonad.scala#L148-L166" target="_blank" title="Go to snippet source"></a><code class="language-scala">type Trampoline[A] = FreeMonad[Function0, A]
 
 def defer[A](delayed: () =&gt; Trampoline[A]): Trampoline[A] =
   FreeMonad.pure[Function0, Unit](()).flatMap(_ =&gt; delayed())
@@ -251,7 +251,7 @@ def evalTrampoline[A](value: Trampoline[A]): A = FreeMonad.foldMap(value)(evalua
 assert(evalTrampoline(even(100000)))
 assert(!evalTrampoline(even(100001)))</code></pre>
 <div class="source-github">
-The source code for this page can be found <a href="https://github.com/salesforce/maligned/tree/master/docs/src/main/paradox/free.md">here</a>.
+The source code for this page can be found <a href="https://github.com/salesforce/maligned/tree/main/docs/src/main/paradox/free.md">here</a>.
 </div>
 
 </div>
@@ -334,7 +334,7 @@ The source code for this page can be found <a href="https://github.com/salesforc
 <script type="text/javascript" src="lib/prettify/prettify.js"></script>
 <script type="text/javascript" src="lib/prettify/lang-scala.js"></script>
 <script type="text/javascript">jQuery(function(){window.prettyPrint && prettyPrint()});</script>
-<script type="text/javascript">jQuery(function(jq){initOldVersionWarnings(jq, '0.0.0+1-118d8694-SNAPSHOT', 'https://github.com/salesforce/maligned')});</script>
+<script type="text/javascript">jQuery(function(jq){initOldVersionWarnings(jq, '0.0.0+1-82e19be5-SNAPSHOT', 'https://github.com/salesforce/maligned')});</script>
 
 
 </html>
