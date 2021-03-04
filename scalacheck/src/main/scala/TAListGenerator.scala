@@ -143,9 +143,9 @@ object TAListGenerator {
 
       override def last: Gen[TATuple2K[Gen, * => B]] =
         for {
-          todo <- genGenAndCogen
-          initFn <- Arbitrary.arbFunction1(Arbitrary(genB), todo.second).arbitrary
-        } yield TATuple2K[Gen, * => B, todo.A](todo.first, initFn)
+          genAndCogen <- genGenAndCogen
+          initFn <- Arbitrary.arbFunction1(Arbitrary(genB), genAndCogen.second).arbitrary
+        } yield TATuple2K[Gen, * => B, genAndCogen.A](genAndCogen.first, initFn)
 
       override def prev[P, Y](state: Gen[P], next: P => Y): Gen[TATuple2K[Gen, * => P]] =
         for {
