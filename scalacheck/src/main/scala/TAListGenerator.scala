@@ -123,13 +123,16 @@ object TAListGenerator {
    * [[https://www.youtube.com/watch?v=O78hnJuzQwA This talk]] by Erik Osheim describes a similar
    * approach to generating random types that match a constraint.
    */
-  val genGenAndCogen: Gen[TATuple2K[Gen, Cogen]] = Gen.oneOf(
-    TATuple2K(arbitrary[Int], Cogen[Int]),
-    TATuple2K(arbitrary[Long], Cogen[Long]),
-    TATuple2K(arbitrary[Option[Double]], Cogen[Option[Double]]),
-    TATuple2K(arbitrary[Boolean], Cogen[Boolean]),
-    TATuple2K(arbitrary[String], Cogen[String]),
-    TATuple2K(arbitrary[List[Int]], Cogen[List[Int]])
+  val genGenAndCogen: Gen[TATuple2K[Gen, Cogen]] = Gen.frequency(
+    1 -> TATuple2K(arbitrary[Unit], Cogen[Unit]),
+    2 -> TATuple2K(arbitrary[Boolean], Cogen[Boolean]),
+    5 -> TATuple2K(arbitrary[String], Cogen[String]),
+    5 -> TATuple2K(arbitrary[Option[Double]], Cogen[Option[Double]]),
+    5 -> TATuple2K(arbitrary[List[Int]], Cogen[List[Int]]),
+    3 -> TATuple2K(arbitrary[Either[String, Int]], Cogen[Either[String, Int]]),
+    5 -> TATuple2K(arbitrary[Either[Boolean, Byte]], Cogen[Either[Boolean, Byte]]),
+    10 -> TATuple2K(arbitrary[Long], Cogen[Long]),
+    15 -> TATuple2K(arbitrary[Int], Cogen[Int])
   )
 
   def fn1TAListGenerator[A, B](

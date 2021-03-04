@@ -88,7 +88,7 @@ lazy val docs = project
       "github.base_url" -> s"$githubRepoUrl/tree/main"
     )
   )
-  .dependsOn(core)
+  .dependsOn(core, malignedScalacheck)
 
 // General Settings
 
