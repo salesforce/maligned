@@ -6,6 +6,7 @@
  */
 
 package com.salesforce.maligned
+package gen
 
 import cats.implicits._
 import org.scalacheck.cats.implicits._

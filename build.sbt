@@ -17,7 +17,7 @@ val githubRepoUrl = "https://github.com/salesforce/maligned"
 // Projects
 lazy val maligned = project
   .in(file("."))
-  .aggregate(core, docs)
+  .aggregate(core, coreTests, docs, malignedScalacheck)
   .settings(commonSettings)
   .settings(
     skip in publish := true
@@ -27,12 +27,34 @@ lazy val core = project
   .in(file("core"))
   .settings(commonSettings)
   .settings(
-    name := "maligned",
+    name := "maligned-core",
+    libraryDependencies += cats.core
+  )
+
+lazy val coreTests = project
+  .in(file("core-tests"))
+  .dependsOn(core, malignedScalacheck)
+  .settings(commonSettings)
+  .settings(
+    name := "maligned-core-tests",
+    skip in publish := true,
     libraryDependencies ++= Seq(
-      cats.core,
+      cats.core % Test,
       cats.effect % Test,
       cats.scalacheck % Test,
       cats.testKit % Test
+    )
+  )
+
+lazy val malignedScalacheck = project
+  .in(file("scalacheck"))
+  .dependsOn(core)
+  .settings(commonSettings)
+  .settings(
+    name := "maligned-scalacheck",
+    libraryDependencies ++= Seq(
+      cats.core,
+      cats.scalacheck
     )
   )
 

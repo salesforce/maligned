@@ -6,6 +6,7 @@
  */
 
 package com.salesforce.maligned
+package gen
 
 import org.scalacheck.{Arbitrary, Cogen, Gen}
 

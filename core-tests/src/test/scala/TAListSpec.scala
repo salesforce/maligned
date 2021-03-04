@@ -16,7 +16,7 @@ import cats.laws.discipline.{CategoryTests, ComposeTests, MiniInt}
 import cats.{Eq, Eval}
 import org.typelevel.discipline.scalatest.Discipline
 
-import TAListGen._
+import gen.TAListGen._
 
 @SuppressWarnings(Array("org.wartremover.warts.ToString")) // whatever these are just tests
 class TAListSpec extends MalignedSpec with Discipline {
