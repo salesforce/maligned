@@ -19,18 +19,18 @@ reasonable (though this should be verified with benchmarks).
 We start off by defining an abstract FreeMonad type for an effect type `F[_]` and result value of
 type `A`:
 
-@@snip [[FreeMonad.scala]](/core/src/test/scala/example/FreeMonad.scala) { #free-type }
+@@snip [[FreeMonad.scala]](/core-tests/src/test/scala/example/FreeMonad.scala) { #free-type }
 
 This is a bare-bones `FreeMonad` type and at this point doesn't define anything useful; we'll add
 that later.
 
 We'll need some ways to construct a `FreeMonad`. The two most straightforward ways to create a `FreeMonad[F[_], A]` value are by simply wrapping an `A` value (the `Pure` constructor) or an `F[A]` value (the `Suspend` constructor). Both `Pure` and `Suspend` wrap a value without providing a "continuation" function to later apply to the value. We'll make them extend a common `NoCont` (_no continuation_) super-type which will end up being useful later on.
 
-@@snip [[FreeMonad.scala]](/core/src/test/scala/example/FreeMonad.scala) { #no-cont-types }
+@@snip [[FreeMonad.scala]](/core-tests/src/test/scala/example/FreeMonad.scala) { #no-cont-types }
 
 The third and final way to construct a `FreeMonad` value is to call `flatMap` on a `FreeMonad[F, A]` value, providing a function of type `A => FreeMonad[F, B]` to produce a `FreeMonad[F, B]` value. We'll refer to functions of this `A => FreeMonad[F, B]` form as _continuations_, as they describe a way to continue the computation once an `A` value has been produced. In fact, let's go ahead and define a `Cont` type alias for continuation functions:
 
-@@snip [[FreeMonad.scala]](/core/src/test/scala/example/FreeMonad.scala) { #cont-type }
+@@snip [[FreeMonad.scala]](/core-tests/src/test/scala/example/FreeMonad.scala) { #cont-type }
 
 Now we can define a constructor for free monads that are created via `flatMap`. It will have two
 fields:
@@ -39,7 +39,7 @@ fields:
 * A non-empty list of continuation functions (`conts`). This will have a single value if `flatMap`
     was only called once, and will have an additional value for each time that `flatMap` is called.
 
-@@snip [[FreeMonad.scala]](/core/src/test/scala/example/FreeMonad.scala) { #flatmapped-class }
+@@snip [[FreeMonad.scala]](/core-tests/src/test/scala/example/FreeMonad.scala) { #flatmapped-class }
 
 The astute reader may have noticed that we used `TANonEmptyList.Rev` as opposed to `TANonEmptyList`
 for the continuations. This is an optimization and isn't strictly necessary. Prepending to a `TANonEmptyList`
@@ -52,7 +52,7 @@ list, which is a linear-time operation, but better one linear-time operation tha
 
 Now we have all the pieces in place to be able to define a `Monad` instance for `Free`!
 
-@@snip [[FreeMonad.scala]](/core/src/test/scala/example/FreeMonad.scala) { #monad-instance }
+@@snip [[FreeMonad.scala]](/core-tests/src/test/scala/example/FreeMonad.scala) { #monad-instance }
 
 ## implementing foldMap
 
@@ -67,14 +67,14 @@ def foldMap[F[_], G[_], A](fa: FreeMonad[F, A])(f2g: FunctionK[F, G])(implicit G
 
 Implementing `foldMap` for `NoCont` values is pretty straightforward, so let's start with that:
 
-@@snip [[FreeMonad.scala]](/core/src/test/scala/example/FreeMonad.scala) { #foldMap-no-cont }
+@@snip [[FreeMonad.scala]](/core-tests/src/test/scala/example/FreeMonad.scala) { #foldMap-no-cont }
 
 Implementing `foldMap` for the `FlatMapped` case in a stack-safe manner is significantly more
 complicated. We'll take the approach of keeping track of the current input value and a stack (a
 `TANonEmptyList` structure) of continuations that still need to be run. First let's define some
 helper type aliases for the (input, continuation) stack pairs:
 
-@@snip [[FreeMonad.scala]](/core/src/test/scala/example/FreeMonad.scala) { #input-and-conts }
+@@snip [[FreeMonad.scala]](/core-tests/src/test/scala/example/FreeMonad.scala) { #input-and-conts }
 
 We'll utilize these helpers in a function that performs a single "step" of the `foldMap`:
 
@@ -85,11 +85,11 @@ We'll utilize these helpers in a function that performs a single "step" of the `
 * If there are no more continuations, return a `Right` wrapping the final value. Otherwise return a
     `Left` with the remaining continuation stack and the input value for the next continuation.
 
-@@snip [[FreeMonad.scala]](/core/src/test/scala/example/FreeMonad.scala) { #foldMapStep }
+@@snip [[FreeMonad.scala]](/core-tests/src/test/scala/example/FreeMonad.scala) { #foldMapStep }
 
 Finally we can define `foldMap`:
 
-@@snip [[FreeMonad.scala]](/core/src/test/scala/example/FreeMonad.scala) { #foldMap }
+@@snip [[FreeMonad.scala]](/core-tests/src/test/scala/example/FreeMonad.scala) { #foldMap }
 
 ## using foldMap
 
@@ -97,7 +97,7 @@ To convince ourselves that our `foldMap` implementation is correct and stack-saf
 classic example of using `Function0` as the `F[_]` type to create a [trampoline] and compute a value
 via two mutually-recursive functions that would not be stack-safe in the absence of trampolining.
 
-@@snip [[FreeMonad.scala]](/core/src/test/scala/example/FreeMonad.scala) { #trampoline-example }
+@@snip [[FreeMonad.scala]](/core-tests/src/test/scala/example/FreeMonad.scala) { #trampoline-example }
 
 [Cats Free docs]: https://typelevel.org/cats/datatypes/freemonad.html
 [trampoline]: https://medium.com/@olxc/trampolining-and-stack-safety-in-scala-d8e86474ddfa
