@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>type-aligned list generation · maligned</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content='docs'/>
+<link rel="canonical" href="https://github.com/salesforce/malignedlist-gen.html"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:100normal,100italic,300normal,300italic,400normal,400italic,500normal,500italic,700normal,700italic,900normal,900italicc" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="js/page.js"></script>
+<script type="text/javascript" src="js/warnOldVersion.js"></script>
+<script type="text/javascript" src="js/groups.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/foundation/dist/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="css/page.css"/>
+
+<!--
+<link rel="shortcut icon" href="images/favicon.ico" />
+-->
+</head>
+
+<body>
+<div class="off-canvas-wrapper">
+<div class="off-canvas-wrapper-inner" data-off-canvas-wrapper>
+
+<div class="off-canvas position-left" id="off-canvas-menu" data-off-canvas>
+<nav class="off-canvas-nav">
+<div class="nav-home">
+<a href="index.html" >
+<span class="home-icon">⌂</span>maligned
+</a>
+<div class="version-number">
+0.0.0+1-2c34c4d6*
+</div>
+</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="data-pipeline.html" class="page">type-aligned data pipeline</a></li>
+  <li><a href="list-gen.html" class="active page">type-aligned list generation</a></li>
+  <li><a href="free.html" class="page">free monad implemented with a type-aligned list</a></li>
+</ul>
+</div>
+
+</nav>
+</div>
+
+<div class="off-canvas-content" data-off-canvas-content>
+
+<header class="site-header expanded row">
+<div class="small-12 column">
+<a href="#" class="off-canvas-toggle hide-for-medium" data-toggle="off-canvas-menu"><svg class="svg-icon svg-icon-menu" version="1.1" id="Menu" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 20 20" enable-background="new 0 0 20 20" xml:space="preserve"> <path class="svg-icon-menu-path" fill="#53CDEC" d="M16.4,9H3.6C3.048,9,3,9.447,3,10c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,9.447,16.952,9,16.4,9z M16.4,13
+H3.6C3.048,13,3,13.447,3,14c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,13.447,16.952,13,16.4,13z M3.6,7H16.4
+C16.952,7,17,6.553,17,6c0-0.553-0.048-1-0.6-1H3.6C3.048,5,3,5.447,3,6C3,6.553,3.048,7,3.6,7z"/></svg>
+</a>
+<div class="title"><a href="index.html">maligned</a></div>
+
+<!--
+<a href="https://www.example.com" class="logo show-for-medium">logo</a>
+-->
+</div>
+</header>
+
+<div class="expanded row">
+
+<div class="medium-3 large-2 show-for-medium column">
+<nav class="site-nav">
+<div class="nav-home">
+<a href="index.html" >
+<span class="home-icon">⌂</span>maligned
+</a>
+<div class="version-number">
+0.0.0+1-2c34c4d6*
+</div>
+</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="data-pipeline.html" class="page">type-aligned data pipeline</a></li>
+  <li><a href="list-gen.html" class="active page">type-aligned list generation</a></li>
+  <li><a href="free.html" class="page">free monad implemented with a type-aligned list</a></li>
+</ul>
+</div>
+
+</nav>
+</div>
+
+<div class="small-12 medium-9 large-10 column">
+<section class="site-content">
+
+<span id="version-warning"></span>
+
+<div class="page-header row">
+<div class="medium-12 show-for-medium column">
+<div class="nav-breadcrumbs">
+<ul>
+  <li><a href="index.html">maligned</a></li>
+  <li>type-aligned list generation</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div class="page-content row">
+<div class="small-12 large-9 column" id="docs">
+<h1><a href="#type-aligned-list-generation" name="type-aligned-list-generation" class="anchor"><span class="anchor-link"></span></a>type-aligned list generation</h1>
+<p>This document provides examples of how you can generate pseudorandom (but deterministic) type-aligned lists using maligned and Scalacheck.</p>
+<h2><a href="#prerequisites" name="prerequisites" class="anchor"><span class="anchor-link"></span></a>prerequisites</h2>
+<p>The code examples assume that the following items have been imported:</p>
+<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/main/core-tests/src/test/scala/example/TAListGenExample.scala#L15-L21" target="_blank" title="Go to snippet source"></a><code class="language-scala">import com.salesforce.maligned._
+import com.salesforce.maligned.gen.TAListGen._
+import cats.data.{Chain, Kleisli, Writer}
+import cats.implicits._
+import org.scalacheck.Arbitrary.arbitrary
+import org.scalacheck.Gen
+import org.scalacheck.rng.Seed</code></pre>
+<p>They also depend on the following helper method to sample a Scalacheck <code>Gen</code> instance with the provided RNG seed:</p>
+<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/main/core-tests/src/test/scala/example/TAListGenExample.scala#L33" target="_blank" title="Go to snippet source"></a><code class="language-scala">def sample[A](gen: Gen[A], seed: Seed): A = gen.apply(Gen.Parameters.default, seed).get</code></pre>
+<h2><a href="#generating-random-type-aligned-lists-of-functions" name="generating-random-type-aligned-lists-of-functions" class="anchor"><span class="anchor-link"></span></a>generating random type-aligned lists of functions</h2>
+<p>Importing <a href="api/com/salesforce/maligned/gen/TAListGen$.html" title="maligned.gen.TAListGen"><code>TAListGen._</code></a> provides implicit Scalacheck <code>Arbitrary</code> instances for type-aligned lists (<a href="api/com/salesforce/maligned/TANonEmptyList.html" title="maligned.TANonEmptyList"><code>TANonEmptyList</code></a> and <a href="api/com/salesforce/maligned/TAList.html" title="maligned.TAList"><code>TAList</code></a>) of function (<code>Function1</code>) elements.</p>
+<p>For example, we can create a generator for lists of length 1 to 6 with an input type of <code>Int</code> and an output type of <code>Option[Double]</code>:</p>
+<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/main/core-tests/src/test/scala/example/TAListGenExample.scala#L39-L40" target="_blank" title="Go to snippet source"></a><code class="language-scala">val taListGen: Gen[TANonEmptyList[Function1, Int, Option[Double]]] =
+  Gen.resize(6, arbitrary[TANonEmptyList[Function1, Int, Option[Double]]])</code></pre>
+<p>Let&rsquo;s go ahead and sample a random list from this generator:</p>
+<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/main/core-tests/src/test/scala/example/TAListGenExample.scala#L44" target="_blank" title="Go to snippet source"></a><code class="language-scala">val exampleList: TANonEmptyList[Function1, Int, Option[Double]] = sample(taListGen, Seed(13L))</code></pre>
+<p>We can compose this list into a single function:</p>
+<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/main/core-tests/src/test/scala/example/TAListGenExample.scala#L48-L50" target="_blank" title="Go to snippet source"></a><code class="language-scala">val f: Int =&gt; Option[Double] = exampleList.composeAll
+
+f(3) should ===(Some(-8.952315155229148e-202))</code></pre>
+<p>But this doesn&rsquo;t give us much insight into the internal structure of the list. Is it just a single element that is a function from <code>Int</code> to <code>Option[Double]</code>? We can see that it&rsquo;s not by checking the length of the list:</p>
+<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/main/core-tests/src/test/scala/example/TAListGenExample.scala#L54" target="_blank" title="Go to snippet source"></a><code class="language-scala">exampleList.toList.size should ===(6)</code></pre>
+<p>To get a better understanding of the composition of the list, we&rsquo;ll have to get a little fancier. We can wrap each function element in some logic to log its output. This will allow us to see all of the intermediate values of the composed functions.</p>
+<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/main/core-tests/src/test/scala/example/TAListGenExample.scala#L58-L82" target="_blank" title="Go to snippet source"></a><code class="language-scala">val loggingFn1 = new FunctionK2[Function1, Kleisli[Writer[Chain[String], *], *, *]] {
+  override def apply[A, B](f: A =&gt; B): Kleisli[Writer[Chain[String], *], A, B] =
+    Kleisli { a =&gt;
+      val output = f(a)
+      Writer(Chain(s&quot;output: ${output.toString}&quot;), output)
+    }
+}
+
+val exampleLoggedList
+  : TANonEmptyList[Kleisli[Writer[Chain[String], *], *, *], Int, Option[Double]] =
+  exampleList.mapK(loggingFn1)
+
+val fnWithLogging = exampleLoggedList.composeAll
+
+fnWithLogging(3).run should ===(
+  (
+    Chain(
+      &quot;output: -1&quot;,
+      &quot;output: -1809610947&quot;,
+      &quot;output: List(-1, 1809634624, 2147483647, -53758633)&quot;,
+      &quot;output: -4249568764532995907&quot;,
+      &quot;output: -9223372036854775808&quot;,
+      &quot;output: Some(-8.952315155229148E-202)&quot;
+    ),
+    Some(-8.952315155229148e-202)))</code></pre>
+<p>As you can see, the list was composed of functions of various types. Because the RNG is deterministic, if we run the function again with the same input value, we&rsquo;ll get the same output. But if we change the input value, we&rsquo;ll see completely different intermediate values.</p>
+<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/main/core-tests/src/test/scala/example/TAListGenExample.scala#L86-L108" target="_blank" title="Go to snippet source"></a><code class="language-scala">fnWithLogging(3).run should ===(
+  (
+    Chain(
+      &quot;output: -1&quot;,
+      &quot;output: -1809610947&quot;,
+      &quot;output: List(-1, 1809634624, 2147483647, -53758633)&quot;,
+      &quot;output: -4249568764532995907&quot;,
+      &quot;output: -9223372036854775808&quot;,
+      &quot;output: Some(-8.952315155229148E-202)&quot;
+    ),
+    Some(-8.952315155229148e-202)))
+
+fnWithLogging(4).run should ===(
+  (
+    Chain(
+      &quot;output: 1929283752716877934&quot;,
+      &quot;output: 1&quot;,
+      &quot;output: List(160958044, 1601040997, -2147483648, -139952998, 1)&quot;,
+      &quot;output: 7163398877903029397&quot;,
+      &quot;output: 7118195307056659999&quot;,
+      &quot;output: Some(1.0051322294659681E109)&quot;
+    ),
+    Some(1.0051322294659681e109)))</code></pre>
+<p>If we generate a new list, it will be comprised of completely different functions (with different inner input/output types):</p>
+<pre class="prettyprint"><a class="icon go-to-source" href="https://github.com/salesforce/maligned/tree/main/core-tests/src/test/scala/example/TAListGenExample.scala#L112-L129" target="_blank" title="Go to snippet source"></a><code class="language-scala">val exampleList2: TANonEmptyList[Function1, Int, Option[Double]] =
+  sample(taListGen, Seed(1000L))
+
+val exampleLoggedList2
+  : TANonEmptyList[Kleisli[Writer[Chain[String], *], *, *], Int, Option[Double]] =
+  exampleList2.mapK(loggingFn1)
+
+val fn2WithLogging = exampleLoggedList2.composeAll
+
+fn2WithLogging(3).run should ===(
+  (
+    Chain(
+      &quot;output: 8106783551773268132&quot;,
+      &quot;output: 0&quot;,
+      &quot;output: 㷱襈鯡䐌&quot;,
+      &quot;output: Left(false)&quot;,
+      &quot;output: Some(9.600598437719758E264)&quot;),
+    Some(9.600598437719758e264)))</code></pre>
+<div class="source-github">
+The source code for this page can be found <a href="https://github.com/salesforce/maligned/tree/main/docs/src/main/paradox/list-gen.md">here</a>.
+</div>
+
+<div class="nav-next">
+<p><strong>Next:</strong> <a href="free.html">free monad implemented with a type-aligned list</a></p>
+</div>
+</div>
+<div class="large-3 show-for-large column" data-sticky-container>
+<nav class="sidebar sticky" data-sticky data-anchor="docs" data-sticky-on="large">
+<div class="page-nav">
+<div class="nav-title">On this page:</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="list-gen.html#type-aligned-list-generation" class="header">type-aligned list generation</a>
+  <ul>
+    <li><a href="list-gen.html#prerequisites" class="header">prerequisites</a></li>
+    <li><a href="list-gen.html#generating-random-type-aligned-lists-of-functions" class="header">generating random type-aligned lists of functions</a></li>
+  </ul></li>
+</ul>
+</div>
+</div>
+</nav>
+</div>
+</div>
+
+</section>
+</div>
+
+</div>
+
+<footer class="site-footer">
+
+<section class="site-footer-nav">
+<div class="expanded row">
+<div class="small-12 large-offset-2 large-10 column">
+<div class="row site-footer-content">
+
+<div class="small-12 medium-4 large-3 text-center column">
+<div class="nav-links">
+<ul>
+<!-- <li><a href="https://www.example.com/products/">Products</a> -->
+</ul>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+</section>
+
+<section class="site-footer-base">
+<div class="expanded row">
+<div class="small-12 large-offset-2 large-10 column">
+<div class="row site-footer-content">
+
+<div class="small-12 text-center large-9 column">
+
+<!--
+<div class="copyright">
+<span class="text">&copy; 1970</span>
+<a href="https://www.example.com" class="logo">logo</a>
+</div>
+-->
+</div>
+
+</div>
+</div>
+</div>
+</section>
+</footer>
+
+</div>
+</div>
+</div>
+</body>
+
+<script type="text/javascript" src="lib/foundation/dist/foundation.min.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="js/magellan.js"></script>
+
+<style type="text/css">@import "lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">jQuery(function(){window.prettyPrint && prettyPrint()});</script>
+<script type="text/javascript">jQuery(function(jq){initOldVersionWarnings(jq, '0.0.0+1-2c34c4d6-SNAPSHOT', 'https://github.com/salesforce/maligned')});</script>
+
+
+</html>
